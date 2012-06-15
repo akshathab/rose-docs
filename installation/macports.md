@@ -63,6 +63,8 @@ require you to compile MacPorts from source:
 
     If you are at LLNL, you first need to open your firewall before doing this
     step. You can do so at https://cspservices.llnl.gov/eor.
+    'selfupdate' synchronizes local 'Protfiles' to the most recent updates, applies bug fixes etc. 'selfupdate' may not complete for some old Macports cores/base, however it is a required 
+    step for port installation steps that follow..
 
     --
     **Install ports** necessary for ROSE to compile:
@@ -70,7 +72,13 @@ require you to compile MacPorts from source:
     ``` bash
       $ port install git-core wget graphviz libtool doxygen texlive texlive-latex-extra boost gcc44
     ```
+    NOTE: ROSE supports boost versions 1_36_0 to 1_45_0. Install the required version of boost as described in http://www.rosecompiler.org/ROSE_InstallationInstructions.pdf guide 
+    and update DYLD_LIBRARY_PATH with the installed boost lib path.
 
+    ``` bash
+      $ DYLD_LIBRARY_PATH=/Users/$USER/MacPorts/boost_1_43_0/installTree/lib
+    ```
+    
     Recommended ports: `ccache`, `graphviz-gui`
 
     --
@@ -90,9 +98,43 @@ require you to compile MacPorts from source:
       /Users/$USER/development/opt/macports/bin/libtoolize
     ```
 
-### Configure ROSE
-
+### ROSE
+Get ROSE through git :
+   
 ``` bash
-  $ $ROSE/configure --with-CXX_DEBUG=-ggdb3 --with-CXX_WARNINGS=-Wall --with-boost="/Users/$USER/development/opt/macports" --with-gfortran="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4" --with-alternate_backend_fortran_compiler=gfortran-mp-4.4 GFORTRAN_PATH="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4"
+  $ git clone ssh://hudson-rose-31/nfs/casc/overture/ROSE/git/ROSE.git
 ```
 
+Possible error: "sh: git-upload-pack: command not found, fatal: The remote end hung up unexpectedly".
+    
+Solution:
+``` bash
+  $ git clone ssh://hudson-rose-31/nfs/casc/overture/ROSE/git/ROSE.git -u /nfs/apps/git/latest/bin/git-upload-pack
+```
+    
+Build ROSE
+``` bash
+   $ cd $ROSE
+   $ ./build
+```
+
+Configure ROSE
+
+
+Create a $ROSE_BUILD directory and configure ROSE from this directory
+
+``` bash
+   $ $ROSE/configure --with-CXX_DEBUG=-ggdb3 --with-CXX_WARNINGS=-Wall --with-boost="/Users/$USER/development/opt/macports" --with-gfortran="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4" --with-alternate_backend_fortran_compiler=gfortran-mp-4.4 GFORTRAN_PATH="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4"
+```
+   
+If Boost is installed locally, specify Boost path using --with-boost:  
+``` bash
+   $ $ROSE/configure --with-CXX_DEBUG=-ggdb3 --with-CXX_WARNINGS=-Wall --with-boost="/Users/$USER/development/opt/macports" --with-gfortran="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4" --with-alternate_backend_fortran_compiler=gfortran-mp-4.4 GFORTRAN_PATH="/Users/$USER/development/opt/macports/bin/gfortran-mp-4.4" --with-boost=/Users/$USER/MacPorts/boost_1_43_0/installTree --with-boost-libdir=/Users/$USER/MacPorts/boost_1_43_0/installTree/lib
+```
+
+Make ROSE
+``` bash
+   $ cd $ROSE_BUILD
+   $ make -j4
+   $ make install
+```
